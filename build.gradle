@@ -1,0 +1,38 @@
+apply plugin: 'groovy'
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+
+repositories {
+  mavenRepo url: "http://localhost:8081/nexus/content/groups/public/"
+}
+
+group = "com.vperi"
+version = "0.1.0-SNAPSHOT"
+
+//for joint groovy/java compilation across sourcesets
+sourceSets.main.java.srcDirs = [ ]
+sourceSets.main.groovy.srcDir 'src/main/java'
+
+dependencies {
+  compile 'org.codehaus.groovy:groovy-all:2.1.6:indy'
+  compile 'log4j:log4j:1.2.16'
+  compile 'org.slf4j:slf4j-api:1.7.2'
+  testCompile 'junit:junit:4.11'
+}
+
+println getProperty( 'com.vperi.dev' )
+
+if ( hasProperty( 'com.vperi.dev' ) ) {
+  uploadArchives {
+    repositories {
+      mavenDeployer {
+        repository( url: getProperty( "com.vperi.localNexus.url" ) ) {
+          authentication(
+              userName: getProperty( "com.vperi.localNexus.username" ),
+              password: getProperty( "com.vperi.localNexus.password" ) )
+        }
+      }
+    }
+  }
+}

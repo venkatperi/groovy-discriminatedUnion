@@ -1,0 +1,4 @@
+
+moduleName=lang-module
+moduleVersion=1.0-SNAPSHOT
+extensionClasses=com.vperi.groovy.lang.extensions.LangExtensions
