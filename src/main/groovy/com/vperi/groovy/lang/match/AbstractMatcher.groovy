@@ -1,19 +1,22 @@
 package com.vperi.groovy.lang.match
+
+import com.vperi.groovy.lang.Variable
+import org.apache.log4j.Logger
+
 /**
  * Copyright (c) 2012-13 by Author(s). All Right Reserved.
  * Author(s): venkat
  */
 @SuppressWarnings("GroovyUnusedDeclaration")
 abstract class AbstractMatcher extends Resolver implements Matcher {
-
+  static LOG = Logger.getLogger( AbstractMatcher )
+  Map<String, Variable> variables = [ : ]
   boolean matched = false
 
   @SuppressWarnings("SpellCheckingInspection")
   def matchers = [
       [ when: { x -> x instanceof Closure && x.call( self ) },
           then: { result -> result instanceof Closure ? result.call( self ) : result } ],
-//      [ when: { x -> x instanceof Class && x.equals( self.class ) },
-//          then: { result -> result instanceof Closure ? result.call( self ) : result } ]
   ]
 
   /**
@@ -45,5 +48,16 @@ abstract class AbstractMatcher extends Resolver implements Matcher {
         ret
       }
     }
+  }
+
+  def propertyMissing( String name ) {
+    if ( !doneWithWhen ) {
+      if ( !variables.containsKey( name ) ) {
+        variables[ name ] = new Variable( name: name )
+      }
+      return variables[ name ]
+    }
+
+    variables[ name ]?.value
   }
 }

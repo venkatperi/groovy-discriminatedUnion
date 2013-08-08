@@ -63,12 +63,15 @@ abstract class Resolver {
    * from the user
    */
   boolean waitingForThen = false
+  boolean doneWithWhen = false
 
   /*
    * Will be called by the <code>Then</code> object when the
    * user passes a result
    */
-  def doneWithThen( ) { waitingForThen = false }
+  def doneWithThen( ) {
+    waitingForThen = false
+  }
 
   /*
    * For a DSL-ish case/when. Returns a <code>Then</code> object
@@ -78,6 +81,7 @@ abstract class Resolver {
    * <code>when {it < 90} then { throw new RuntimeException() }</code>
    */
   Then when( Object condition ) {
+    doneWithWhen = true
     waitingForThen = true
     new ThenImpl( this, condition )
   }
