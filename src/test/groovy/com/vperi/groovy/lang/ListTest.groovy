@@ -25,6 +25,17 @@ class ListTest extends GroovyTestCase {
     }
   }
 
+  def sumList( List l ) {
+    l.match {
+      when Cons then { h, List t -> h + sumList( t ) }
+      when Nil then 0
+    }
+  }
+
+  void testListTailRecursion(){
+    assertEquals 15, sumList([1,2,3,4,5])
+  }
+
   void testMatchPattern( ) {
     assert [ true, false ].match {
       when( [ false, false ] ) then false

@@ -10,7 +10,6 @@ import com.vperi.groovy.lang.DiscriminatedUnion
  */
 @SuppressWarnings("GroovyUnusedDeclaration")
 class Tree extends DiscriminatedUnion {
-
   /**
    * Types held by this DU
    */
