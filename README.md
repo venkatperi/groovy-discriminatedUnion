@@ -52,26 +52,37 @@ assert Option.None().match{
 * We also inject a `match` method into `List` for list based pattern matching.
 * `match` matches one and only one `when` pattern or `othewise` if no matching `when` was found.
 * `match` returns the result of the matched pattern, i.e. the argument to `then`. If a closure is supplied, arguments are injected into the closure depending on the matched pattern, the closure is evaluated and its result returned. In the case of a non-closure argument, the argument is returned.  *Note* that any non-closure expression in the entire `match` block is evaluated even if it is part of a pattern that has not matched. When in doubt, enclose `then` arguments in a closure, or expect interesting side-effects.
-* 
+* `match` delegates the actual matching to handlers based primarily on its context (e.g. Option vs List). So in the case of `Option.match`, the underlying matcher matches `Class`. Other matchers match against value, vector size, etc. A special case is if a closure is supplied as the match pattern, e.g.:
+ 
+```groovy
+something.match {
+  when { it == 'abc' } then { ... }
+}
+```
+In this case, the closure is evaluated with a single argument such that `it == something`
 
-###Option Type
+##List Patterns and `match`
+The `Cons` pattern matches lists and provides `then` with the head element and tail list. Likewise, `Nil` matches against an empty list.
 
-### Some Option
-The `Some` case of the Option type has a value whose type is represented by the type of the value held by the option.
+```groovy
+assert [ 1, 2, 3 ].match {
+  when Cons then { h, t -> h == 1 && t == [ 2, 3 ] }
+  when Nil then false
+  otherwise false
+}
+```
+As in F#, this pattern lends itself to tail recursion:
 
+```groovy
+def sumList( List l ) {
+  l.match {
+    when Cons then { h, List t -> h + sumList( t ) }
+    when Nil then 0
+  }
+}
 
-### None Option
-The `None` case has no associated value. Note that the result of the matched statement is returned by `match{}`
-
-    def option = Option.None()
-    def value = option.match {
-        when Some then 100
-        when None then null
-        otherwise 100
-    }
-    assert null == value
-
-###Return Value
+assert 15 == sumList( [ 1, 2, 3, 4, 5 ] )
+```
 
 
 ##Trees
