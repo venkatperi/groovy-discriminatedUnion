@@ -62,6 +62,7 @@ something.match {
 In this case, the closure is evaluated with a single argument such that `it == something`
 
 ##List Patterns and `match`
+### `Cons` and `Nil`
 The `Cons` pattern matches lists and provides `then` with the head element and tail list. Likewise, `Nil` matches against an empty list.
 
 ```groovy
@@ -84,20 +85,109 @@ def sumList( List l ) {
 assert 15 == sumList( [ 1, 2, 3, 4, 5 ] )
 ```
 
+###List Equality
+List equality is straightforward:
 
-##Trees
-    
-    assert new Tree(100).match {
-        when Tip then false
-        when Tree then true
-        otherwise false
-    }
+```groovy
+assert [ true, false ].match {
+  when( [ false, false ] ) then false
+  when( [ false, true ] ) then false
+  when( [ true, false ] ) then true
+  when( [ true, true ] ) then false
+  otherwise false
+}
+```
 
-    assert new Tip().match {
-        when Tip then true
-        when Tree then false
-        otherwise false
-    }
+Obviously the contents of the list isn't limited to booleans as in the example above. We note that truth-table style matching is a compact alternative to if-then-else/switch statements. 
+
+###Matching with wildcards
+When matching lists, we can replace a list element with the wildcard operator `_` (underscore) to imply that we'll accept anything at that position in the list.
+
+```groovy
+assert [ 1, 2, 3, "a" ].match {
+  when( [ 1, 2, 3, 4 ] ) then false
+  when( [ 1, 2, 3, _ ] ) then true
+  otherwise false
+}
+```
+
+###Matching with Variables
+We can replace the wildcard operator with a variable identifier (underfined, standard scoping rules apply) to imply that we'll matching anything, but want to capture the matched value.
+
+```groovy
+assertEquals 1, [ 1, 2, 3, "a" ].match {
+  when( [ x, 2, 3, _ ] ) then { x }
+  otherwise 100
+}
+```
+
+
+##Custom DU Types - Trees
+We can define custom DU types, e.g. a Tree node with a value and two child nodes each of which can be a Tree node or a Tip (terminal node, no value) like this (see sources - tests):
+
+```groovy
+class Tree extends DiscriminatedUnion {
+  /**
+   * Types held by this DU
+   */
+  List types = [ Tip, Tree ]
+
+  int val
+  Tree leftChild
+  Tree rightChild
+
+  protected Tree( ) {
+    this( 0, null, null )
+  }
+  
+  Tree( int v ) {
+    this( v, new Tip(), new Tip() )
+  }
+
+  Tree( int v, Tree l ) {
+    this( v, l, new Tip() )
+  }
+
+  Tree( int v, Tree l, Tree r ) {
+    val = v
+    leftChild = l
+    rightChild = r
+    useSelfAsValue = true
+  }
+
+  String toString( ) {
+    "Tree[$val, $leftChild, $rightChild]"
+  }
+}
+
+```
+
+and a Tip node:
+
+```groovy
+class Tip extends Tree {
+  Tip( ) {}
+
+  String toString( ) {
+    "Tip"
+  }
+}
+```
+
+We can do a recursive walk on the tree:
+
+```groovy
+def sumTree( Tree t ) {
+  t?.match {
+    when Tip then 0
+    when Tree then { Tree n -> n.val + sumTree( n.leftChild ) + sumTree( n.rightChild ) }
+  }
+}
+
+def tree = new Tree( 0, new Tree( 1, new Tree( 2 ) ), new Tree( 3, new Tree( 4 ) ) )
+assertEquals 10, sumTree( tree )
+```
+
 
 ##Credits
 The core matcher functionality comes from [graphology][graphology].
