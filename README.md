@@ -21,7 +21,7 @@ We can test for `Some` vs. `None` like this:
 ```groovy
 option.match {
   when Some then { println "We have 'some' value" }
-  when Some then { println "It's None!" }
+  when None then { println "It's None!" }
 }
 ```
 
