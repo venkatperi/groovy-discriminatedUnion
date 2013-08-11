@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Groovy-discriminatedunion by venkatperi</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Groovy-discriminatedunion</h1>
+          <h2>A Groovy discriminated union implementation</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/venkatperi/groovy-discriminatedUnion/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/venkatperi/groovy-discriminatedUnion/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/venkatperi/groovy-discriminatedUnion" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>
+<a name="discriminated-unions" class="anchor" href="#discriminated-unions"><span class="octicon octicon-link"></span></a>Discriminated Unions</h1>
+
+<p>Discriminated unions provide support for values that can be one of a number of named cases, possibly each with different values and types. UsesDiscriminated unions are useful for heterogeneous data: </p>
+
+<ul>
+<li>Data that can have special cases, including valid and error cases</li>
+<li>Data that varies in type from one instance to another</li>
+<li>As an alternative for small object hierarchies. </li>
+</ul><p>See: <a href="http://msdn.microsoft.com/en-us/library/dd233226.aspx">MSDN</a>,<a href="https://en.wikipedia.org/wiki/Tagged_union">Wikipedia</a>. </p>
+
+<h2>
+<a name="a-groovy-discriminated-union" class="anchor" href="#a-groovy-discriminated-union"><span class="octicon octicon-link"></span></a>A Groovy Discriminated Union</h2>
+
+<h3>
+<a name="option-type" class="anchor" href="#option-type"><span class="octicon octicon-link"></span></a><code>Option</code> Type</h3>
+
+<p>Let's say we want a variable <code>option</code> to hold some value (<code>Some</code>) or no value (<code>None</code>). Let's start with <code>Some</code>:</p>
+
+<div class="highlight"><pre><span class="kt">def</span> <span class="n">option</span> <span class="o">=</span> <span class="n">Option</span><span class="o">.</span><span class="na">Some</span><span class="o">(</span> <span class="mi">100</span> <span class="o">)</span>
+</pre></div>
+
+<p>We can test for <code>Some</code> vs. <code>None</code> like this:</p>
+
+<div class="highlight"><pre><span class="n">option</span><span class="o">.</span><span class="na">match</span> <span class="o">{</span>
+  <span class="n">when</span> <span class="n">Some</span> <span class="n">then</span> <span class="o">{</span> <span class="n">println</span> <span class="s2">"We have 'some' value"</span> <span class="o">}</span>
+  <span class="n">when</span> <span class="n">Some</span> <span class="n">then</span> <span class="o">{</span> <span class="n">println</span> <span class="s2">"It's None!"</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>We can get the value of an <code>Option</code> like this:</p>
+
+<div class="highlight"><pre><span class="kt">def</span> <span class="n">value</span> <span class="o">=</span> <span class="n">option</span><span class="o">.</span><span class="na">match</span> <span class="o">{</span>
+  <span class="n">when</span> <span class="n">Some</span> <span class="n">then</span> <span class="o">{</span> <span class="n">it</span> <span class="o">}</span>
+  <span class="n">otherwise</span> <span class="kc">null</span>
+<span class="o">}</span>
+<span class="k">assert</span> <span class="mi">100</span> <span class="o">==</span> <span class="n">value</span>
+</pre></div>
+
+<p>where <code>otherwise</code> is a <em>catch-all</em> matcher. When an Option is matched with Some, the value held by Some is injected into the <code>then</code> closure (if a closure is provided).</p>
+
+<p>It follows that:</p>
+
+<div class="highlight"><pre><span class="k">assert</span> <span class="n">Option</span><span class="o">.</span><span class="na">None</span><span class="o">().</span><span class="na">match</span><span class="o">{</span>
+  <span class="n">when</span> <span class="n">Some</span> <span class="n">then</span> <span class="kc">false</span>
+  <span class="n">when</span> <span class="n">None</span> <span class="n">then</span> <span class="kc">true</span>
+  <span class="n">otherwise</span> <span class="kc">false</span>
+<span class="o">}</span>
+</pre></div>
+
+<h2>
+<a name="about-the-match-method" class="anchor" href="#about-the-match-method"><span class="octicon octicon-link"></span></a>About the <code>match</code> method</h2>
+
+<ul>
+<li>A <code>match</code> method is defined for <code>DiscriminatedUnion</code> and is available to its descendants (e.g. Option). </li>
+<li>We also inject a <code>match</code> method into <code>List</code> for list based pattern matching.</li>
+<li>
+<code>match</code> matches one and only one <code>when</code> pattern or <code>othewise</code> if no matching <code>when</code> was found.</li>
+<li>
+<code>match</code> returns the result of the matched pattern, i.e. the argument to <code>then</code>. If a closure is supplied, arguments are injected into the closure depending on the matched pattern, the closure is evaluated and its result returned. In the case of a non-closure argument, the argument is returned.  <em>Note</em> that any non-closure expression in the entire <code>match</code> block is evaluated even if it is part of a pattern that has not matched. When in doubt, enclose <code>then</code> arguments in a closure, or expect interesting side-effects.</li>
+<li>
+<code>match</code> delegates the actual matching to handlers based primarily on its context (e.g. Option vs List). So in the case of <code>Option.match</code>, the underlying matcher matches <code>Class</code>. Other matchers match against value, vector size, etc. A special case is if a closure is supplied as the match pattern, e.g.:</li>
+</ul><div class="highlight"><pre><span class="n">something</span><span class="o">.</span><span class="na">match</span> <span class="o">{</span>
+  <span class="n">when</span> <span class="o">{</span> <span class="n">it</span> <span class="o">==</span> <span class="s1">'abc'</span> <span class="o">}</span> <span class="n">then</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>In this case, the closure is evaluated with a single argument such that <code>it == something</code></p>
+
+<h2>
+<a name="list-patterns-and-match" class="anchor" href="#list-patterns-and-match"><span class="octicon octicon-link"></span></a>List Patterns and <code>match</code>
+</h2>
+
+<h3>
+<a name="cons-and-nil" class="anchor" href="#cons-and-nil"><span class="octicon octicon-link"></span></a><code>Cons</code> and <code>Nil</code>
+</h3>
+
+<p>The <code>Cons</code> pattern matches lists and provides <code>then</code> with the head element and tail list. Likewise, <code>Nil</code> matches against an empty list.</p>
+
+<div class="highlight"><pre><span class="k">assert</span> <span class="o">[</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span> <span class="o">].</span><span class="na">match</span> <span class="o">{</span>
+  <span class="n">when</span> <span class="n">Cons</span> <span class="n">then</span> <span class="o">{</span> <span class="n">h</span><span class="o">,</span> <span class="n">t</span> <span class="o">-&gt;</span> <span class="n">h</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="n">t</span> <span class="o">==</span> <span class="o">[</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span> <span class="o">]</span> <span class="o">}</span>
+  <span class="n">when</span> <span class="n">Nil</span> <span class="n">then</span> <span class="kc">false</span>
+  <span class="n">otherwise</span> <span class="kc">false</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>As in F#, this pattern lends itself to tail recursion:</p>
+
+<div class="highlight"><pre><span class="kt">def</span> <span class="nf">sumList</span><span class="o">(</span> <span class="n">List</span> <span class="n">l</span> <span class="o">)</span> <span class="o">{</span>
+  <span class="n">l</span><span class="o">.</span><span class="na">match</span> <span class="o">{</span>
+    <span class="n">when</span> <span class="n">Cons</span> <span class="n">then</span> <span class="o">{</span> <span class="n">h</span><span class="o">,</span> <span class="n">List</span> <span class="n">t</span> <span class="o">-&gt;</span> <span class="n">h</span> <span class="o">+</span> <span class="n">sumList</span><span class="o">(</span> <span class="n">t</span> <span class="o">)</span> <span class="o">}</span>
+    <span class="n">when</span> <span class="n">Nil</span> <span class="n">then</span> <span class="mi">0</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">assert</span> <span class="mi">15</span> <span class="o">==</span> <span class="n">sumList</span><span class="o">(</span> <span class="o">[</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span> <span class="o">]</span> <span class="o">)</span>
+</pre></div>
+
+<h3>
+<a name="list-equality" class="anchor" href="#list-equality"><span class="octicon octicon-link"></span></a>List Equality</h3>
+
+<p>List equality is straightforward:</p>
+
+<div class="highlight"><pre><span class="k">assert</span> <span class="o">[</span> <span class="kc">true</span><span class="o">,</span> <span class="kc">false</span> <span class="o">].</span><span class="na">match</span> <span class="o">{</span>
+  <span class="n">when</span><span class="o">(</span> <span class="o">[</span> <span class="kc">false</span><span class="o">,</span> <span class="kc">false</span> <span class="o">]</span> <span class="o">)</span> <span class="n">then</span> <span class="kc">false</span>
+  <span class="n">when</span><span class="o">(</span> <span class="o">[</span> <span class="kc">false</span><span class="o">,</span> <span class="kc">true</span> <span class="o">]</span> <span class="o">)</span> <span class="n">then</span> <span class="kc">false</span>
+  <span class="n">when</span><span class="o">(</span> <span class="o">[</span> <span class="kc">true</span><span class="o">,</span> <span class="kc">false</span> <span class="o">]</span> <span class="o">)</span> <span class="n">then</span> <span class="kc">true</span>
+  <span class="n">when</span><span class="o">(</span> <span class="o">[</span> <span class="kc">true</span><span class="o">,</span> <span class="kc">true</span> <span class="o">]</span> <span class="o">)</span> <span class="n">then</span> <span class="kc">false</span>
+  <span class="n">otherwise</span> <span class="kc">false</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>Obviously the contents of the list isn't limited to booleans as in the example above. We note that truth-table style matching is a compact alternative to if-then-else/switch statements. </p>
+
+<h3>
+<a name="matching-with-wildcards" class="anchor" href="#matching-with-wildcards"><span class="octicon octicon-link"></span></a>Matching with wildcards</h3>
+
+<p>When matching lists, we can replace a list element with the wildcard operator <code>_</code> (underscore) to imply that we'll accept anything at that position in the list.</p>
+
+<div class="highlight"><pre><span class="k">assert</span> <span class="o">[</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="s2">"a"</span> <span class="o">].</span><span class="na">match</span> <span class="o">{</span>
+  <span class="n">when</span><span class="o">(</span> <span class="o">[</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span> <span class="o">]</span> <span class="o">)</span> <span class="n">then</span> <span class="kc">false</span>
+  <span class="n">when</span><span class="o">(</span> <span class="o">[</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="n">_</span> <span class="o">]</span> <span class="o">)</span> <span class="n">then</span> <span class="kc">true</span>
+  <span class="n">otherwise</span> <span class="kc">false</span>
+<span class="o">}</span>
+</pre></div>
+
+<h3>
+<a name="matching-with-variables" class="anchor" href="#matching-with-variables"><span class="octicon octicon-link"></span></a>Matching with Variables</h3>
+
+<p>We can replace the wildcard operator with a variable identifier (underfined, standard scoping rules apply) to imply that we'll matching anything, but want to capture the matched value.</p>
+
+<div class="highlight"><pre><span class="n">assertEquals</span> <span class="mi">1</span><span class="o">,</span> <span class="o">[</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="s2">"a"</span> <span class="o">].</span><span class="na">match</span> <span class="o">{</span>
+  <span class="n">when</span><span class="o">(</span> <span class="o">[</span> <span class="n">x</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="n">_</span> <span class="o">]</span> <span class="o">)</span> <span class="n">then</span> <span class="o">{</span> <span class="n">x</span> <span class="o">}</span>
+  <span class="n">otherwise</span> <span class="mi">100</span>
+<span class="o">}</span>
+</pre></div>
+
+<h2>
+<a name="custom-du-types---trees" class="anchor" href="#custom-du-types---trees"><span class="octicon octicon-link"></span></a>Custom DU Types - Trees</h2>
+
+<p>We can define custom DU types, e.g. a Tree node with a value and two child nodes each of which can be a Tree node or a Tip (terminal node, no value) like this (see sources - tests):</p>
+
+<div class="highlight"><pre><span class="kd">class</span> <span class="nc">Tree</span> <span class="kd">extends</span> <span class="n">DiscriminatedUnion</span> <span class="o">{</span>
+  <span class="cm">/**</span>
+<span class="cm">   * Types held by this DU</span>
+<span class="cm">   */</span>
+  <span class="n">List</span> <span class="n">types</span> <span class="o">=</span> <span class="o">[</span> <span class="n">Tip</span><span class="o">,</span> <span class="n">Tree</span> <span class="o">]</span>
+
+  <span class="kt">int</span> <span class="n">val</span>
+  <span class="n">Tree</span> <span class="n">leftChild</span>
+  <span class="n">Tree</span> <span class="n">rightChild</span>
+
+  <span class="kd">protected</span> <span class="nf">Tree</span><span class="o">(</span> <span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">(</span> <span class="mi">0</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">null</span> <span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="n">Tree</span><span class="o">(</span> <span class="kt">int</span> <span class="n">v</span> <span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">(</span> <span class="n">v</span><span class="o">,</span> <span class="k">new</span> <span class="n">Tip</span><span class="o">(),</span> <span class="k">new</span> <span class="n">Tip</span><span class="o">()</span> <span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="n">Tree</span><span class="o">(</span> <span class="kt">int</span> <span class="n">v</span><span class="o">,</span> <span class="n">Tree</span> <span class="n">l</span> <span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">(</span> <span class="n">v</span><span class="o">,</span> <span class="n">l</span><span class="o">,</span> <span class="k">new</span> <span class="n">Tip</span><span class="o">()</span> <span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="n">Tree</span><span class="o">(</span> <span class="kt">int</span> <span class="n">v</span><span class="o">,</span> <span class="n">Tree</span> <span class="n">l</span><span class="o">,</span> <span class="n">Tree</span> <span class="n">r</span> <span class="o">)</span> <span class="o">{</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="n">leftChild</span> <span class="o">=</span> <span class="n">l</span>
+    <span class="n">rightChild</span> <span class="o">=</span> <span class="n">r</span>
+    <span class="n">useSelfAsValue</span> <span class="o">=</span> <span class="kc">true</span>
+  <span class="o">}</span>
+
+  <span class="n">String</span> <span class="nf">toString</span><span class="o">(</span> <span class="o">)</span> <span class="o">{</span>
+    <span class="s2">"Tree[$val, $leftChild, $rightChild]"</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+</pre></div>
+
+<p>and a Tip node:</p>
+
+<div class="highlight"><pre><span class="kd">class</span> <span class="nc">Tip</span> <span class="kd">extends</span> <span class="n">Tree</span> <span class="o">{</span>
+  <span class="n">Tip</span><span class="o">(</span> <span class="o">)</span> <span class="o">{}</span>
+
+  <span class="n">String</span> <span class="nf">toString</span><span class="o">(</span> <span class="o">)</span> <span class="o">{</span>
+    <span class="s2">"Tip"</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>We can do a recursive walk on the tree:</p>
+
+<div class="highlight"><pre><span class="kt">def</span> <span class="nf">sumTree</span><span class="o">(</span> <span class="n">Tree</span> <span class="n">t</span> <span class="o">)</span> <span class="o">{</span>
+  <span class="n">t</span><span class="o">?.</span><span class="na">match</span> <span class="o">{</span>
+    <span class="n">when</span> <span class="n">Tip</span> <span class="n">then</span> <span class="mi">0</span>
+    <span class="n">when</span> <span class="n">Tree</span> <span class="n">then</span> <span class="o">{</span> <span class="n">Tree</span> <span class="n">n</span> <span class="o">-&gt;</span> <span class="n">n</span><span class="o">.</span><span class="na">val</span> <span class="o">+</span> <span class="n">sumTree</span><span class="o">(</span> <span class="n">n</span><span class="o">.</span><span class="na">leftChild</span> <span class="o">)</span> <span class="o">+</span> <span class="n">sumTree</span><span class="o">(</span> <span class="n">n</span><span class="o">.</span><span class="na">rightChild</span> <span class="o">)</span> <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kt">def</span> <span class="n">tree</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Tree</span><span class="o">(</span> <span class="mi">0</span><span class="o">,</span> <span class="k">new</span> <span class="n">Tree</span><span class="o">(</span> <span class="mi">1</span><span class="o">,</span> <span class="k">new</span> <span class="n">Tree</span><span class="o">(</span> <span class="mi">2</span> <span class="o">)</span> <span class="o">),</span> <span class="k">new</span> <span class="n">Tree</span><span class="o">(</span> <span class="mi">3</span><span class="o">,</span> <span class="k">new</span> <span class="n">Tree</span><span class="o">(</span> <span class="mi">4</span> <span class="o">)</span> <span class="o">)</span> <span class="o">)</span>
+<span class="n">assertEquals</span> <span class="mi">10</span><span class="o">,</span> <span class="n">sumTree</span><span class="o">(</span> <span class="n">tree</span> <span class="o">)</span>
+</pre></div>
+
+<h2>
+<a name="credits" class="anchor" href="#credits"><span class="octicon octicon-link"></span></a>Credits</h2>
+
+<p>The core matcher functionality comes from <a href="https://github.com/will-lp/graphology-case-match">graphology</a>.</p>
+        </section>
+
+        <footer>
+          Groovy-discriminatedunion is maintained by <a href="https://github.com/venkatperi">venkatperi</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
